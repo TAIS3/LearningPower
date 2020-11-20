@@ -14,17 +14,25 @@ autoRun();
 
 function autoRun() {
 
-    var options = ["文章浏览", "视频浏览"];
+    //全部任务就包括文章浏览与视频浏览
+    var options = ["文章浏览", "视频浏览","全部任务"];
     var i = dialogs.select("请选择一个选项", options);
-
+    //综合栏目里面的前三个文章来源,我这是人民日报,新华社,求是网,可以自己定义
+    let articleSource = ["人民日报","新华社","求是网"];
+    // let articleIndex = 0;
+    let articleCount = 10;
 
     if(i >= 0){
         toast("您选择的是" + options[i]);
         switch (options[i]) {
             case "文章浏览":
-                articleControl();
+                articleControl(0,articleCount);
                 break;
             case "视频浏览":
+                videoControl();
+                break;
+            case "全部任务":
+                articleControl(0,articleCount);
                 videoControl();
                 break;
         }
@@ -34,64 +42,118 @@ function autoRun() {
 
     toast('全部完毕');
 
-
-    function articleControl() {
+    /**
+     * 文章操作
+     * @param {number} articleIndex 文章来源
+     * @param {number} articleCount 文章数量
+     */
+    function articleControl(articleIndex,articleCount) {
         sleep(random(3, 4) * 1000);
-        if(textEndsWith("要闻").find().length > 0){
-            click('要闻',0);
-            sleep(2000);
-            click('新思想',0);
-            sleep(2000);
-        }
+        click('综合',0);
+        sleep(2000);
         
+        //如果综合栏目里,前面的文章太多找不到来源定位,下滑一次
+        if(textContains(articleSource[articleIndex]).find().length < 0){
+            swipe(width/2,deviceY,width/2,deviceY-(rectHeight*2),500);
+        }
+
+        click(articleSource[articleIndex],0);
+        sleep(random(3, 4) * 1000);
+
         let textArea = idEndsWith("general_card_title_id").find();
         console.log(textArea);
         console.log("文章个数:" + textArea.length);
+        let articleNum = textArea.length <= articleCount ? textArea.length : articleCount ;
+        console.log("浏览次数:" + articleNum);
         // return false;
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < articleNum; i++) {
             sleep(random(3, 4) * 1000);
             if(!textArea[i]){break;};
             log(textArea[i].text());
-            // click("2020-", i);
-            // textArea[i].click();
             click(textArea[i].text(),0);
             sleep(random(3, 4) * 1000);
             downControll(x1, y1, x2, y2, 1687, 10);
+            sleep(random(1, 2) * 1000);
             swipe(0, 1037, 500, 1037, 500);
             sleep(random(1, 2) * 1000);
             toast("准备下一次");
             sleep(random(1, 2) * 1000);
         }
-    }
+        swipe(0, 1037, 500, 1037, 500);
+        sleep(random(1, 2) * 1000);
 
-    function videoControl() {
-        // sleep(random(3, 4) * 1000);
-        // click('电视台');
-        // sleep(random(3, 4) * 1000);
-        // click('看电视');
-        // sleep(random(3, 4) * 1000);
-        // click('中央广播电视总台');
-        pointList = [
-            [205, 1289],
-            [562, 1289],
-            [896, 1289],
-            [205, 1540],
-            [562, 1540],
-            [896, 1540],
-            [205, 1813],
-            [562, 1813]
-        ]
-        for (let j = 0; j < pointList.length; j++) {
-            toast('点击第' + (j + 1) + '个');
-            sleep(random(1, 2) * 1000);
-            click(pointList[j][0], pointList[j][1]);
-            sleep(random(15, 20) * 1000);
+        if(textArea.length < articleCount){
+            toast("文章未够");
+            sleep(random(3, 4) * 1000);
+            toast("下一篇文章来源");
+            articleControl(articleIndex + 1,articleCount - textArea.length);
         }
+
     }
 
+    /**
+     * 视频操作,取电视台,根据当天是星期几而看的卫视组
+     */
+    function videoControl() {
+        sleep(random(3, 4) * 1000);
+        let tvIndex = getDowDay();
+        //下面两个数字可适当根据手机屏幕自行调整
+        let deviceY = height - 280;//为滚动电视台底部起点
+        let rectHeight = 370;//一行电视台元素的高度
 
+        sleep(random(3, 4) * 1000);
+        toast("电视台");
+        click('电视台');
+        sleep(random(1, 2) * 1000);
+        toast("看电视");
+        click('看电视');
+        sleep(random(1, 2) * 1000);
+        toast("地方台");
+        click('地方台');
+        sleep(random(1, 2) * 1000);
 
-    
+        for (let i = 1; i < tvIndex; i++) {
+            sleep(random(1, 2) * 1000);
+            console.log("滑动" + i + "次");
+            sleep(random(1, 2) * 1000);
+            swipe(width/2,deviceY,width/2,deviceY-(rectHeight*2),500);
+        }
+
+        sleep(random(3, 4) * 1000);
+
+        //卫视列表
+        let tvList = [
+            ["北京卫视","天津卫视","河北卫视","山西卫视","内蒙古卫视","内蒙古蒙语卫视"],
+            ["辽宁卫视","吉林卫视","黑龙江卫视","东方卫视","江苏卫视","浙江卫视"],
+            ["安徽卫视","东南卫视","江西卫视","山东卫视","河南卫视","湖北卫视"],
+            ["湖南卫视","广东卫视","广西卫视","海南卫视","重庆卫视","四川卫视"],
+            ["康巴卫视","贵州卫视","云南卫视","西藏卫视","西藏藏语卫视","陕西卫视"],
+            ["甘肃卫视","青海卫视","青海安多卫视","宁夏卫视","新疆卫视","兵团卫视"],
+            ["海峡卫视","南方卫视","厦门卫视","深圳卫视","延边卫视","山东教育卫视"]
+        ]
+
+        // for (let j = 0; j < tvList[tvIndex - 1].length; j++) {
+        //     toast('点击' + tvList[tvIndex - 1][j]);
+        //     console.log(tvList[tvIndex - 1][j]);
+        //     console.log(textContains(tvList[tvIndex - 1][j]).find().length);
+        //     sleep(random(1, 2) * 1000);
+        // }
+
+        // return false;
+        for (let j = 0; j < tvList[tvIndex - 1].length; j++) {
+            toast('点击' + tvList[tvIndex - 1][j]);
+            sleep(random(1, 2) * 1000);
+            click(tvList[tvIndex - 1][j],0);
+            sleep(random(60,75) * 1000);
+        }
+        swipe(0, 1037, 500, 1037, 500);
+    }
+}
+
+//获取当前日期是星期几
+function getDowDay(){
+    let day = new Date();
+    return day.getDay();
 }
 
 function backWoard() {
