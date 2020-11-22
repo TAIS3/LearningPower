@@ -50,11 +50,13 @@ function autoRun() {
     function articleControl(articleIndex,articleCount) {
         sleep(random(3, 4) * 1000);
         click('综合',0);
-        sleep(2000);
-        
+        sleep(4000);
+        //toast(textContains(articleSource[articleIndex]).find().length);
         //如果综合栏目里,前面的文章太多找不到来源定位,下滑一次
-        if(textContains(articleSource[articleIndex]).find().length < 0){
-            swipe(width/2,deviceY,width/2,deviceY-(rectHeight*2),500);
+        if(textContains(articleSource[articleIndex]).find().length < 1){
+            toast("无文章来源标记");
+            swipe(width/2,height-280,width/2,height-700,500);
+            sleep(random(3, 4) * 1000);
         }
 
         click(articleSource[articleIndex],0);
@@ -140,10 +142,11 @@ function autoRun() {
         // }
 
         // return false;
-        for (let j = 0; j < tvList[tvIndex - 1].length; j++) {
-            toast('点击' + tvList[tvIndex - 1][j]);
+        console.log(tvIndex,tvList[tvIndex]);
+        for (let j = 0; j < tvList[tvIndex].length; j++) {
+            toast('点击' + tvList[tvIndex][j]);
             sleep(random(1, 2) * 1000);
-            click(tvList[tvIndex - 1][j],0);
+            click(tvList[tvIndex][j],0);
             sleep(random(60,75) * 1000);
         }
         swipe(0, 1037, 500, 1037, 500);
